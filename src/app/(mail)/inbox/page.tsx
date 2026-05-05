@@ -14,7 +14,7 @@ import { AttachmentList } from '@/components/mail/AttachmentList'
 export default function InboxPage() {
   const {
     emails, isLoading, totalEmails, currentPage,
-    fetchEmails, syncAndRefresh,  // ✅ ajout de syncAndRefresh
+    fetchEmails, onSSENewEmails,  // ✅ corrigé : onSSENewEmails au lieu de syncAndRefresh
     markRead, toggleStar, deleteEmail, moveEmail,
   } = useEmails('inbox')
 
@@ -36,12 +36,10 @@ export default function InboxPage() {
         setNotification(
           `${data.new_count} nouveau${data.new_count > 1 ? 'x' : ''} message${data.new_count > 1 ? 's' : ''}`
         )
-        // ✅ syncAndRefresh au lieu de fetchEmails
-        // → déclenche IMAP puis rafraîchit l'affichage
-        syncAndRefresh()
+        onSSENewEmails()  // ✅ corrigé
         setTimeout(() => setNotification(null), 4000)
       }
-    }, [syncAndRefresh]),  // ✅ dépendance mise à jour
+    }, [onSSENewEmails]),  // ✅ dépendance corrigée
   })
 
   const handleSelect = async (email: typeof emails[0]) => {
