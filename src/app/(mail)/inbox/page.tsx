@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { useEmails } from '@/hooks/useEmails'
-import { useSSE } from '@/hooks/useSSE'
+import { useSSE, SSENewEmailsEvent } from '@/hooks/useSSE'
 import { EmailList } from '@/components/mail/EmailList'
 import { useEmailStore } from '@/store/emailStore'
 import { PGPDecryptModal } from '@/components/pgp/PGPDecryptModal'
@@ -14,7 +14,7 @@ import { AttachmentList } from '@/components/mail/AttachmentList'
 export default function InboxPage() {
   const {
     emails, isLoading, totalEmails, currentPage,
-    fetchEmails, onSSENewEmails,  
+    fetchEmails, onSSENewEmails,
     markRead, toggleStar, deleteEmail, moveEmail,
   } = useEmails('inbox')
 
@@ -31,17 +31,15 @@ export default function InboxPage() {
   // SSE — notifications temps réel
   useSSE({
     enabled: true,
-    onNewEmails: useCallback((data) => {
+    onNewEmails: useCallback((data: SSENewEmailsEvent) => {
       if (data.new_count && data.new_count > 0) {
         setNotification(
           `${data.new_count} nouveau${data.new_count > 1 ? 'x' : ''} message${data.new_count > 1 ? 's' : ''}`
         )
-        // ✅ syncAndRefresh au lieu de fetchEmails
-        // → déclenche IMAP puis rafraîchit l'affichage
         onSSENewEmails()
         setTimeout(() => setNotification(null), 4000)
       }
-    }, [onSSENewEmails]),  // ✅ dépendance mise à jour
+    }, [onSSENewEmails]),
   })
 
   const handleSelect = async (email: typeof emails[0]) => {
